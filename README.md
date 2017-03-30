@@ -4,23 +4,24 @@
     
     mkdir /tmp/zero_builder
     cd /tmp/zero_builder
-    git clone https://github.com/hyphop/miZy-builder        
+    git clone https://github.com/hyphop/miZy-builder
 
 ## GENERATE
 
-    cd /tmp/zero_builder
+    cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm_generate yes
 
 ## RUN
     
-    cd /tmp/zero_builder
+    cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm start
 
 ## NET IMAGE
 
-yes u can download and use already generated image from net )
+yes u can download and use already generated image from net withot any preparation )
+sure! you must trust for this image or generate image by himself!
 
-    cd /tmp/zero_builder
+    cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm_image get
     ./miZy_builder_vm start
 
