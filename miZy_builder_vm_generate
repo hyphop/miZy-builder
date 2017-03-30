@@ -79,14 +79,25 @@ chroot $BLDIR passwd -d root
 
 mkdir $BLDIR/root/.ssh
 
-## fixed ssh keys there
 cat << END >> $BLDIR/root/.ssh/authorized_keys
-ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAHZr9RUvkf892ilkMwVDcjCGtaAtPflZifF+Xw6rWdVie4xz3LwEJJNWPGyzdApqzjrbZQFXAnWiaUiDJR1lsbVSwDepseHwuDUugJFk+u4qzAf6CMuKOikoqkxu4oMmU2/X/hKC4dSkv4WLQzv3lE3CsVkJzsnvL6Wp06Vp+h7jhrw7Q== master@sager
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEOziuqVzGGDsNe1/F1pNH2/2k6mrli1qzdxCunZKgfgr1Hfl3EqK44Ba0pNa7VQgtbEqBmXPxAc56/ZH7CbqBTuBcQDwtLVSi3qlp8CLK8d1XXcfIXc6/8mh54k7bk8MpZvpj9XXGaFMjTRj3zd+lOjeeepniYz0rLFf2bRrY2Ol6IbxYimxut9lwGo7cl8v/ekBxYW2EMIwPM2mic6vfsLOp7SICNwF2HGREC13tyfgUav05SguHvgAAK+uKpCvFy43Dlyoi03KzKe942Qr9ykc4kFXyL3Vy1rzM9IKkcVrdh6W/rs8XPuav7C3VZdZ2iYHdiXl6QGYHK1PJqQ0F master@master
+## put fixed authorized_keys there
+## yes is empty there
+
 END
 
-## get public ssh keys of current user
-cat ~/.ssh/*.pub >> $BLDIR/root/.ssh/authorized_keys
+## get public ssh keys for current user
+[ "$get_my_ssh_keys" = "" ] || {
+    echo "[i] authorized_keys from ~/.ssh/*.pub"
+    echo "## get from ~/.ssh/*.pub" >> $BLDIR/root/.ssh/authorized_keys
+    cat ~/.ssh/*.pub >> $BLDIR/root/.ssh/authorized_keys
+}
+
+## get public ssh keys for $0.pub
+[ -f $0.pub ] {
+    echo "[i] authorized_keys from $0.pub"
+    echo "## get from $0.pub" >> $BLDIR/root/.ssh/authorized_keys
+    cat $0.pub >> $BLDIR/root/.ssh/authorized_keys
+}
 
 ## set some prefs 
 chroot $BLDIR update-alternatives --set editor /usr/bin/mcedit
