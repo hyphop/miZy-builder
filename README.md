@@ -30,11 +30,9 @@ sure! you must trust for this image or generate image by himself!
     root@miZyBldr:~# cat ~/.ssh/authorized_keys 
     ## put fixed authorized_keys there
     ## yes is empty there
-        
     ## get from ./miZy_builder_vm_generate.pub
     ## miZy_builder_vm_generate.pub
     ## yes is empty there
-
 
 ## miZy 
  
