@@ -93,7 +93,7 @@ END
 }
 
 ## get public ssh keys for $0.pub
-[ -f $0.pub ] {
+[ -f $0.pub ] && {
     echo "[i] add authorized_keys from $0.pub"
     echo "## get from $0.pub" >> $BLDIR/root/.ssh/authorized_keys
     cat $0.pub >> $BLDIR/root/.ssh/authorized_keys
