@@ -1,0 +1,211 @@
+#!/bin/sh
+
+## hyphop ##
+
+usage() { echo "
+$0 - run miZy bulder vm image in qemu+kvm
+
+USAGE:
+
+    ./miZy_builder_vm start
+
+EXAMPLES:
+
+get ip config from default miZy_builder_vm.net.conf file and run miZyBldr.squashfs image
+
+    ./miZy_builder_vm start
+
+get ip config from MY_IP.conf file and run MY_IMAGE.squashfs image
+
+    conf=./MY_IP.conf image=./MY_IMAGE.squashfs ./miZy_builder_vm start
+
+no use file config, only via env vars
+
+    noconf=1 ip0=11.168.1.1 ip0h=11.168.1.254 ip0g=11.168.1.254  ./miZy_builder_vm start
+
+NETWORK CONFIG VARS
+
+on VM   side: run two interfaces eth0 and eth1, eth0 used as WAN, eth1 used as LAN.
+on HOST side: run two interfaces tap0 and tap1, tap0 <=> eth0 and tap1 <=> eth1
+
+eth0 config vars
+
+* ip0	- eth0 vm ip
+* ip0h	- tap0 host ip
+* ip0g	- eth0 vm gateway ip (usually its same ip0h) or empty value if gw not used
+
+eth1 config vars
+
+* ip1	- eth1 vm ip
+* ip1h	- tap1 host ip
+* ip1g	- eth1 vm gateway ip (usually its same ip1h) or empty value if gw not used
+
+NOTE:
+
+    read $0 source - for more info, and change it if u need
+";}
+
+[ "$noconf" = "" ] && {
+    [ "$conf" = "" ] && conf="$0.net.conf"
+    [ -f $conf ] || { echo "[e] not found config $conf"; exit 1; } 
+    #echo "[i] read config $conf";
+    . $conf
+}
+
+## qemu net scripts there 
+[ "$VMSTARTED" = "1" ] && {
+
+    #echo "NET SCRIPT $0: $@"
+
+    netvar="/tmp/vm_net_$1";
+
+    case $1 in
+	tap0)
+	# nat rule 
+	host_nat_rule="POSTROUTING -s $ip0 ! -d $ip0h -j MASQUERADE"
+
+	[ -f $netvar ] && {
+	    # down eth0 tap0 script there
+	    echo "[i] dev $1 $ip0 / host $ip0h DOWN"
+	    ifconfig $1 down
+	    [ "$ip0nat" = "" ] || {
+	    iptables -t nat -D $host_nat_rule 1>/dev/null 2>&1
+	    }
+	    rm $netvar
+	    exit 0
+	}
+
+	# up eth0 tap0 script there
+	echo "[i] dev $1 $ip0 / host $ip0h UP"
+	ifconfig $1 $ip0h netmask 255.255.255.0
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	echo 0 > /proc/sys/net/ipv4/conf/$1/proxy_arp
+        [ "$ip0nat" = "" ] || {
+	    echo "NAT: $host_nat_rule"
+	    iptables -t nat -D $host_nat_rule 1>/dev/null 2>&1
+	    iptables -t nat -A $host_nat_rule
+	}
+	route add $ip0 dev $1
+	echo "$ip0 $ip0h $ip0g" > $netvar
+	exit 0
+	;;
+	tap1)
+
+	[ "$ip1ssh_port" = "" ] && ip1ssh_port=22
+	ssh_redirect_rule1="PREROUTING -p tcp -m tcp --dport $ip1ssh_host_port -j DNAT --to-destination $ip1:$ip1ssh_port"
+	ssh_redirect_rule2="POSTROUTING -o $1 -j MASQUERADE"
+
+	[ -f $netvar ] && {
+	    # down eth0 tap0 script there
+	    echo "[i] dev $1 $ip1 / host $ip1h DOWN"
+	    [ "$ip1ssh_host_port" = "" ] || {
+		# remove redirect rescue ssh host port to vm ssh port 22
+		iptables -t nat -D $ssh_redirect_rule1 1>/dev/null 2>&1
+		iptables -t nat -D $ssh_redirect_rule2 1>/dev/null 2>&1
+	    }
+	    rm $netvar
+	    exit 0
+	}
+
+	# up eth1 tap1 script there
+	echo "[i] dev $1 $ip1 / host $ip1h UP"
+	ifconfig $1 $ip1h netmask 255.255.255.0
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+	route add $ip1 dev $1
+	[ "$ip1ssh_host_port" = "" ] || {
+	    # add redirect rescue ssh host port to vm ssh port 22
+	    echo "[i] add redirect rescue ssh host port $ip1ssh_host_port to vm ssh port $ip1ssh_port"
+	    echo "NAT: $ssh_redirect_rule1"
+	    echo "NAT: $ssh_redirect_rule2"
+    	    iptables -t nat -I $ssh_redirect_rule1
+    	    iptables -t nat -I $ssh_redirect_rule2
+	}
+	echo "$ip1 $ip1h $ip1g" > $netvar
+	exit 0
+	;;
+	*)
+	echo "[e] dev $1 not configured"
+	exit 1
+    esac
+
+}
+
+
+#set -e
+
+[ "$1" = "start" ] || { usage; exit 0; } 
+
+
+#mprobe="modprobe.blacklist=drm,ipv6,intel_agp,agpgart,parport,kvm"
+mprobe=""
+
+[ "$mb" = "" ] && mb=miZyBldr
+[ "$image" = "" ] && image=$mb.squashfs
+
+[ -s $image ] || { 
+    echo "[e] not found $image"
+    exit 1
+}
+
+[ -d $mb ] || mkdir $mb
+
+[ -d $mb/etc ] || {
+    echo "[i] mount -o ro $image $mb"
+    mount -o ro $image $mb || {
+	echo "[e] mount -o ro $image $mb"
+	exit 1
+    }
+}
+
+kernel=`ls $mb/boot/vmlinuz-*`
+initrd=`ls $mb/boot/initrd*`
+
+[ "$kernel" ] || {
+    echo "[e] not found $kernel"
+}
+
+[ "$initrd" ] || {
+    echo "[e] not found $initrd"
+}
+
+[ "$host_name" = "" ] && host_name=$mb
+[ "$log_options" = "" ] && log_options=quiet
+
+ipcnf="ip0=$ip0 ip0g=$ip0g ip1=$ip1 ip1g=$ip1g"
+
+echo -e "[i] vm_image: $image\n\tkernel:\n\t$kernel\n\tinitrd: $initrd"
+echo "[i] read config $conf" # => $ipcnf";
+
+[ "$host_name" = "" ] || userconfig="${userconfig} hostname=$host_name"
+[ "$password" = "" ] || userconfig="${userconfig} password=$password"
+userconfig="${userconfig} $ipcnf"
+userconfig="${userconfig} $log_options"
+
+echo "[i] userconfig: $userconfig"
+
+#exit 0 
+
+export VMSTARTED=1
+
+modprobe kvm-intel
+
+#[ -f "$0.down" ] || netdown_script=$0.down
+netdown_script=$0
+
+
+qemu-system-x86_64 \
+-enable-kvm \
+-smp 2 \
+-m 2047 \
+-cpu kvm64 \
+-kernel $kernel \
+-initrd $initrd \
+-append "console=ttyS0 root=/dev/vda ro aufs=tmpfs ro panic=15 vt.default_utf8=1 loop.max_loop=64 $userconfig" \
+-net nic,vlan=0,model=virtio \
+-net tap,vlan=0,script="$0",downscript="$netdown_script" \
+-net nic,vlan=1,model=virtio \
+-net tap,vlan=1,script="$0",downscript="$netdown_script" \
+-drive file=$image,if=virtio,index=0 \
+-nographic
+
+exit 0

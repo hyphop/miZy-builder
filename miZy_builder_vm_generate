@@ -1,0 +1,337 @@
+#!/bin/bash
+
+## hyphop ##
+
+usage() { echo "
+$0 - make vm image for next miZy system building )
+
+ABOUT: 
+
+    generate stable debian/ubuntu minimal image with pre-installed 
+    necessary packages, with configured user access and network up
+    
+USAGE:
+    
+    $0 yes
+
+ok! now u can start vm ./miZy_builder_vm
+
+CONFIG:
+
+* miZy_builder_vm.net.conf - config for network ip + nat
+
+NOTE:
+
+    read about ** Bootstrap a basic Debian system **
+
+    man debootstrap
+";}
+
+set -e
+
+[ "$1" = "yes" ] || { usage; exit 0; } 
+#cd /tmp
+
+BLNME=miZyBldr
+BLDIR=$BLNME
+BLIMG=$BLDIR.squashfs
+
+echo $PWD | grep /tmp/ || { echo "wrong work dir $PWD"; exit 1; }
+[ "$BLDIR" = "" ] && { echo "wrong $BLDIR"; exit 1; }
+
+echo "make miZy builder in $BLDIR"
+
+#mkdir $BLDIR
+#exit 0
+
+VER=wheezy
+VER=stable
+
+#VER=xenial
+#FROM=http://archive.ubuntu.com/ubuntu/
+FROM=http://http.debian.net/debian
+
+cmd="debootstrap --arch=amd64 $VER $BLDIR $FROM"
+
+[ "1" ] && {
+
+echo $cmd
+$cmd
+
+chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes --no-install-recommends linux-image-amd64
+
+}
+
+chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes \
+bison make flex git time ash bc python gettext \
+ncurses-dev u-boot-tools squashfs-tools lzma lzop xz-utils tcpdump bwm-ng \
+openssh-server mc aufs-tools bash-completion 
+
+echo $BLNME > $BLDIR/etc/hostname
+
+## USERS ACCESS
+
+echo 'T0:23:respawn:/sbin/getty -L ttyS0 115200 vt100' >>$BLDIR/etc/inittab
+
+chroot $BLDIR passwd -d root
+
+## SSH BLOCK
+
+mkdir $BLDIR/root/.ssh
+
+## fixed ssh keys there
+cat << END >> $BLDIR/root/.ssh/authorized_keys
+ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAHZr9RUvkf892ilkMwVDcjCGtaAtPflZifF+Xw6rWdVie4xz3LwEJJNWPGyzdApqzjrbZQFXAnWiaUiDJR1lsbVSwDepseHwuDUugJFk+u4qzAf6CMuKOikoqkxu4oMmU2/X/hKC4dSkv4WLQzv3lE3CsVkJzsnvL6Wp06Vp+h7jhrw7Q== master@sager
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEOziuqVzGGDsNe1/F1pNH2/2k6mrli1qzdxCunZKgfgr1Hfl3EqK44Ba0pNa7VQgtbEqBmXPxAc56/ZH7CbqBTuBcQDwtLVSi3qlp8CLK8d1XXcfIXc6/8mh54k7bk8MpZvpj9XXGaFMjTRj3zd+lOjeeepniYz0rLFf2bRrY2Ol6IbxYimxut9lwGo7cl8v/ekBxYW2EMIwPM2mic6vfsLOp7SICNwF2HGREC13tyfgUav05SguHvgAAK+uKpCvFy43Dlyoi03KzKe942Qr9ykc4kFXyL3Vy1rzM9IKkcVrdh6W/rs8XPuav7C3VZdZ2iYHdiXl6QGYHK1PJqQ0F master@master
+END
+
+## get public ssh keys of current user
+cat ~/.ssh/*.pub >> $BLDIR/root/.ssh/authorized_keys
+
+## set some prefs 
+chroot $BLDIR update-alternatives --set editor /usr/bin/mcedit
+
+cat << END > $BLDIR/root/.selected_editor
+SELECTED_EDITOR="/usr/bin/mcedit"
+END
+
+cat << END > $BLDIR/etc/profile.d/locale.sh
+export LANG=en_US
+export LANGUAGE=en_US
+export LC_CTYPE=C
+export LC_ALL=C
+END
+
+## INITRD SETUP
+
+cat << END > $BLDIR/etc/initramfs-tools/initramfs.conf  
+MODULES=list
+BUSYBOX=y
+KEYMAP=n
+COMPRESS=gzip
+DEVICE=
+NFSROOT=auto
+END
+
+cat << END > $BLDIR/etc/initramfs-tools/modules
+    virtio
+    virtio_blk
+    virtio_net
+    virtio_pci
+    aufs
+    squashfs
+    loop
+END
+
+#cp aufs/aufs $BLDIR/usr/share/initramfs-tools/hooks
+cat << END >> $BLDIR/usr/share/initramfs-tools/hooks/aufs
+#!/bin/sh
+if [ "$1" = "prereqs" ]; then exit 0; fi
+. /usr/share/initramfs-tools/hook-functions
+copy_exec /bin/grep
+copy_exec /bin/sed
+copy_exec /usr/bin/cut
+copy_exec /bin/chmod
+END
+
+chmod 0755 $BLDIR/usr/share/initramfs-tools/hooks/aufs
+
+cat << "END" > $BLDIR/etc/initramfs-tools/scripts/init-bottom/rootaufs
+#!/bin/sh
+
+## hyphop ##
+## fix & adapt
+
+#  Copyright 2008 Nicholas A. Schembri State College PA USA
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see
+#    <http://www.gnu.org/licenses/>.
+
+
+case $1 in
+prereqs)
+    exit 0
+    ;;
+esac
+
+export aufs
+
+for x in $(cat /proc/cmdline); do 
+    case $x in 
+    root=*)
+        ROOTNAME=${x#root=}
+        ;;
+    aufs=*)
+        aufs=${x#aufs=}
+        case $aufs in
+        tmpfs-debug)
+            aufs=tmpfs
+            aufsdebug=1
+            ;;
+        esac    
+        ;;
+    esac
+done
+
+[ "$aufs" != "tmpfs" ] && exit 0
+
+echo "root-aufs:  Setting up aufs on ${rootmnt} as root file system "
+
+modprobe aufs || exit 0
+
+mkdir /aufs
+mkdir /rw
+mkdir /ro
+
+mount -t tmpfs aufs-tmpfs /rw
+mount -n -o move ${rootmnt} /ro || {
+    echo "root-aufs error:    ${rootmnt}  failed to move to /ro"
+    exit 0
+}
+
+mount -t aufs -o dirs=/rw:/ro=ro aufs /aufs || {
+    echo "root-aufs error:      Failed to mount /aufs files system"
+    exit 0
+}
+
+
+#test for mount points on aufs file system
+[  -d /aufs/ro ] || mkdir /aufs/ro
+[  -d /aufs/rw ] || mkdir /aufs/rw
+
+# the real root file system is hidden on /ro of the init file system.  move it to /ro 
+mount -n -o move /ro /aufs/ro || {
+    echo "root-aufs error:      Failed to move /ro /aufs/ro"
+    exit 0
+}
+
+# tmpfs file system is hidden on /rw
+mount -n -o move /rw /aufs/rw || {
+    echo "root-aufs error:      Failed to move /rw /aufs/rw"
+    exit 0
+}
+
+mount -n -o move /aufs ${rootmnt}
+
+exit 0 
+
+END
+
+# cp aufs/rootaufs  $BLDIR/etc/initramfs-tools/scripts/init-bottom
+chmod 0755 $BLDIR/etc/initramfs-tools/scripts/init-bottom/rootaufs
+
+## 
+
+cat << END >> $BLDIR/etc/fstab
+tmpfs /tmp tmpfs defaults,noatime,nosuid 0 0
+END
+
+chroot $BLDIR update-initramfs -u
+
+## NET
+
+. ./miZy_builder_vm.net.conf
+
+cat << END >> $BLDIR/etc/resolv.conf
+nameserver 8.8.8.8
+END
+
+cat << END >> $BLDIR/etc/hosts
+##
+$ip0		$BLNME
+$ip0h		hst
+$ip1		vrt
+$ip1h		vhst
+END
+
+cat << END >> $BLDIR/etc/network/interfaces
+## 
+#auto eth0
+#iface eth0 inet static
+#        netmask 255.255.255.0
+#        address $ip0
+#        gateway $ip0g
+
+auto eth1
+iface eth1 inet static
+        netmask 255.255.255.0
+        address $ip1
+	#gateway $ip1g
+##
+END
+
+cat << "END" > $BLDIR/etc/rc.local
+#!/bin/sh
+## get config vm net from kernel args
+for v in `cat /proc/cmdline`; do
+    case $v in 
+        hostname=*)
+        echo ${v#hostname=} > /proc/sys/kernel/hostname
+	;;
+        password=*)
+	echo "PASSWORD: root:${v#password=}"
+        echo root:${v#password=} | chpasswd
+	;;
+        ip0=*)
+	ifconfig eth0 ${v#ip0=} netmask 255.255.255.0
+        ;;
+	ip0g=*)
+	route add default gw ${v#ip0g=}
+	;;
+        ip1=*)
+	ifconfig eth1 ${v#ip1=} netmask 255.255.255.0
+        ;;
+	ip1g=*)
+	route add default gw ${v#ip1g=}
+	;;
+	esac
+done
+END
+
+## remove some files 
+
+[ "1" ] && {
+
+rm -rf $BLDIR/usr/share/doc/*
+rm -rf $BLDIR/usr/share/man/??
+rm -rf $BLDIR/usr/share/man/??_*
+
+for l in `ls $BLDIR/usr/share/locale/`; do
+    case $l in
+	en|en_US)
+	echo "leave locale $l"
+	;;
+	*)
+	#echo "remove locale $l"
+	rm -r $BLDIR/usr/share/locale/$l
+    esac
+done
+
+}
+
+rm -rf $BLDIR/var/cache/apt/*
+
+## pack 
+
+#( cd $BLDIR && find . -print0 | cpio --null -o --format=newc | lzop -9 > ../$BLDIR.lzo )
+#( cd $BLDIR && find . -print0 | cpio --null -o --format=newc > $BLDIR.cpio )
+
+mksquashfs $BLDIR $BLIMG -comp xz
+
+echo "[i] $BLIMG - is ready, now u can run ./miZy_builder_vm"
+
+###
+### END
+###
+

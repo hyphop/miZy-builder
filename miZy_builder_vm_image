@@ -1,0 +1,65 @@
+#!/bin/sh
+
+## hyphop ##
+
+about() { echo "
+$0 - vm image helper
+
+USAGE
+
+* $0 get 
+* $0 unpack
+* $0 pack
+* $0 mount
+* $0 umount
+
+"; }
+
+[ "$mb" = "" ] && mb=miZyBldr
+[ "$img" = "" ] && img=$2
+[ "$img" = "" ] && img=$mb.squashfs
+[ "$cmd" = "" ] && cmd=$1
+[ "$url" = "" ] && url=https://github.com/hyphop/pkg/releases/download/uboot/$img
+
+#echo "[i] CMD: $cmd DIR: $mb IMG: $img"
+
+case $cmd in
+    get)
+    URL=${cmd#get=}
+    [ "$URL" = "" ] && URL=$url
+    wget $URL -O $img
+    ;;
+    info)
+    ;;
+    mount)
+    [ -d $mb ] || mkdir $mb
+    cmd="mount -o ro $img $mb"
+    echo $cmd
+    $cmd && exit 0
+    exit 1
+    ;;
+    umount)
+    cmd="umount $img"
+    echo $cmd
+    [ -f $img ] && $cmd && exit 0
+    cmd="umount $mb"
+    echo $cmd
+    [ -d $mb ] && $cmd && exit 0
+    exit 1
+    ;;
+    unpack)
+    cmd="unsquashfs -d $mb $img"
+    echo $cmd
+    $cmd && exit 0
+    exit 1
+    ;;
+    pack)
+    cmd="mksquashfs $mb $img -comp xz"
+    echo $cmd
+    $cmd && exit 0
+    exit 1
+    ;;
+    *)
+    about
+    exit 0
+esac
