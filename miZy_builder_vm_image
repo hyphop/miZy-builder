@@ -29,10 +29,10 @@ case $cmd in
     URL=${URL#=}
     [ "$URL" = "" ] && URL=$url
     echo wget $URL -O $img
-    wget $URL -O $img
-    md5sum $img
-    wget $URL.md5sum -O $img.md5sum
+    [-f $img ] || wget $URL -O $img
+    [-f $img.md5sum ] || wget $URL.md5sum -O $img.md5sum
     cat $img.md5sum
+    md5sum -c $img.md5sum
     ;;
     info)
     ;;
