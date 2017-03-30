@@ -16,7 +16,7 @@
     cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm start
 
-## NET IMAGE
+## DOWNLOAD IMAGE
 
 yes u can download and use already generated image withot any preparation )
 sure! you must trust for this image or generate image by himself!
