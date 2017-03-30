@@ -24,9 +24,11 @@ USAGE
 #echo "[i] CMD: $cmd DIR: $mb IMG: $img"
 
 case $cmd in
-    get)
-    URL=${cmd#get=}
+    get*)
+    URL=${cmd#get}
+    URL=${URL#=}
     [ "$URL" = "" ] && URL=$url
+    echo wget $URL -O $img
     wget $URL -O $img
     md5sum $img
     wget $URL.md5sum -O $img.md5sum
