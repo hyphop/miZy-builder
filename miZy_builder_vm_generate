@@ -87,14 +87,14 @@ END
 
 ## get public ssh keys for current user
 [ "$get_my_ssh_keys" = "" ] || {
-    echo "[i] authorized_keys from ~/.ssh/*.pub"
+    echo "[i] add authorized_keys from ~/.ssh/*.pub"
     echo "## get from ~/.ssh/*.pub" >> $BLDIR/root/.ssh/authorized_keys
     cat ~/.ssh/*.pub >> $BLDIR/root/.ssh/authorized_keys
 }
 
 ## get public ssh keys for $0.pub
 [ -f $0.pub ] {
-    echo "[i] authorized_keys from $0.pub"
+    echo "[i] add authorized_keys from $0.pub"
     echo "## get from $0.pub" >> $BLDIR/root/.ssh/authorized_keys
     cat $0.pub >> $BLDIR/root/.ssh/authorized_keys
 }
