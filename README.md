@@ -16,9 +16,9 @@
     cd /tmp/zero_builder
     ./miZy_builder_vm start
 
-## GET READY IMAGE
+## NET IMAGE
 
-download already generated image from net
+yes u can download and use already generated image from net )
 
     cd /tmp/zero_builder
     ./miZy_builder_vm_image get
