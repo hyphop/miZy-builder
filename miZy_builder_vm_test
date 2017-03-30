@@ -1,0 +1,9 @@
+#!/bin/sh
+
+## hyphop ##
+
+dir=scripts ./tools/http --daemon
+
+. ./miZy_builder_vm.net.conf
+
+./miZy_builder_vm start run=http://$ip0h/init.script

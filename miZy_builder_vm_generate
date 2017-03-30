@@ -290,6 +290,25 @@ for v in `cat /proc/cmdline`; do
         hostname=*)
         echo ${v#hostname=} > /proc/sys/kernel/hostname
 	;;
+        run=*)
+        run=${v#run=}
+	case $run in
+	    http*)
+		s=/tmp/init.script
+		wget $run -O $s
+		chmod 0755 $s
+		cd /tmp
+		$s
+	    ;;
+	    vbd*)
+		s=/tmp/vdb/init.script
+		mount /dev/vdb /tmp/vdb 
+		$s
+	    ;;
+	    *)
+	    echo "IGNORE RUN $run"
+	esac
+	;;
         password=*)
 	echo "PASSWORD: root:${v#password=}"
         echo root:${v#password=} | chpasswd

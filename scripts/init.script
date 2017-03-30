@@ -1,0 +1,14 @@
+#!/bin/sh
+
+## hyphop ##
+
+echo hello from $0
+echo hello from $0 >> /tmp/$0.log
+echo hello from $0 >> /dev/ttyS0
+
+sleep 2
+
+grep run /proc/cmdline && poweroff
+
+
+

@@ -1,0 +1,130 @@
+#!/usr/bin/perl
+
+## hyphop ##
+
+# simple http file server
+# for free usage
+
+use HTTP::Daemon;
+use HTTP::Status qw(:constants);
+use Time::HiRes qw(gettimeofday tv_interval);
+
+### configs
+our $dir = $ENV{dir} // ".";
+
+#   $dir  = "/tmp";
+our $log  = ">&STDERR";
+our $addr = $ENV{host} // '';
+our $port = $ENV{port} // 80;
+our $addr_port = "$addr:$port";
+our $engine    = 'HTTP::Daemon';
+our $failagain = 1;
+our $show_req  = 0;
+###
+
+### prepare
+
+open $LOG, $log;
+
+our $daemon = 0;
+
+sub daemon {
+    return if $daemon++;
+    warn "[i] goto bg as $$\n";
+    open STDIN,  "</dev/null";
+    open STDOUT, ">>/tmp/http.log";
+    open STDERR, ">&STDOUT";
+    my $now= now();
+    fork && exit;
+    print "[i] $now started as $$\n";
+}
+
+our $PID_FILE = "/tmp/http.pid";
+
+$SIG{$_} = sub { warn "[i] stop by $_[0]\n"; unlink $PID_FILE; exit 0 }
+  for qw/INT TERM DIE/;
+$SIG{PIPE} = sub { 0 && warn "[i] pipe broken\n" };
+$SIG{HUP} = sub { warn "[i] hup\n"; daemon };
+
+sub now { $_ = localtime() }
+
+our $ARGV = join " " => @ARGV;
+
+
+lastkill() if $ARGV =~ /-+k(ill)?/;
+
+sub lastkill {
+    open PID , "$PID_FILE";
+    warn "[i] stop last\n";
+    local $_;
+    sysread PID, $_, 512;
+    close PID;
+    if ( $_ > -1 ) {
+	my $its_last=`grep -q http /proc/$_/cmdline && echo 1`;
+	warn "[i] stop last $_ yes:$its_last\n";
+	kill INT => $_ if $its_last;
+    }
+    exit 0
+}
+
+daemon() if $ARGV =~ /-+d(aemon)?/;
+
+die "[e] looks like run already $PID_FILE\n"
+    if -f $PID_FILE;
+
+### start loop
+
+open PID , ">$PID_FILE";
+syswrite PID, $$;
+close PID;
+
+do {
+
+    my $d = $engine->new( LocalAddr => $addr_port, ReuseAddr => 1 )
+      || die "[e] create $engine $addr_port";
+
+    chdir($dir);
+    my $CWD = readlink "/proc/$$/cwd";    # linux only
+
+    warn qq{
+[i] chdir $dir => $CWD
+[i] listen $engine $addr_port
+[i] request examples
+# wget http://$addr/filesystem.squashfs -O- >/dev/null
+# curl http://$addr/filesystem.squashfs >/dev/null
+};
+
+    while (1) {
+        my ( $c, $user_addr ) = $d->accept;
+        last unless $c;
+        my ( $user_port, $user_ip2 ) = unpack_sockaddr_in($user_addr);
+        my $user_ip = inet_ntoa($user_ip2);
+        while ( my $r = $c->get_request ) {
+            my $req = $r->as_string;
+            $req =~ /\r?\n\r?\n/;
+            my $p = substr $r->uri->path, 1;
+            $p =~ s/\.\.\///g;    # need for some secure )
+            if ( -f $p ) {
+                my $t0 = [gettimeofday];
+                printf $LOG
+                  '[%s] %s %s "%s"' => now(),
+                  $user_ip, get_file => $p;
+                $c->send_file_response($p);
+                printf $LOG " %s bytes, time duration %.2f\n",
+                  ( -s $p ), tv_interval($t0);
+                next;
+            }
+            else {
+                printf $LOG
+                  "[%s] %s %s %s\n" => now(),
+                  $user_ip, request => $`
+                  if $show_req;
+            }
+            $c->send_error(HTTP_NOT_FOUND);
+        }
+        $c->close;
+        undef($c);
+    }
+    warn "[w] fail\n";
+    sleep 1;
+} while ($failagain);

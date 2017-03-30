@@ -179,7 +179,7 @@ echo "[i] read config $conf" # => $ipcnf";
 [ "$host_name" = "" ] || userconfig="${userconfig} hostname=$host_name"
 [ "$password" = "" ] || userconfig="${userconfig} password=$password"
 userconfig="${userconfig} $ipcnf"
-userconfig="${userconfig} $log_options"
+userconfig="${userconfig} $log_options $2 $3 $4 $5 $6"
 
 echo "[i] userconfig: $userconfig"
 
