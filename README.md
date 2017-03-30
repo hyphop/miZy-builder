@@ -1,4 +1,4 @@
-#  gererate | run | configure vm image (qemu+kvm) for miZy system building and other tests
+#  gererate | run | configure vm image (qemu+kvm) for miZy building system and other tests
 
 ## GET SCRIPTS
     
@@ -18,7 +18,7 @@
 
 ## NET IMAGE
 
-yes u can download and use already generated image from net withot any preparation )
+yes u can download and use already generated image withot any preparation )
 sure! you must trust for this image or generate image by himself!
 
     cd /tmp/zero_builder/miZy-builder

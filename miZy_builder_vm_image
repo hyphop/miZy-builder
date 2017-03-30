@@ -19,7 +19,7 @@ USAGE
 [ "$img" = "" ] && img=$2
 [ "$img" = "" ] && img=$mb.squashfs
 [ "$cmd" = "" ] && cmd=$1
-[ "$url" = "" ] && url=https://github.com/hyphop/pkg/releases/download/uboot/$img
+[ "$url" = "" ] && url=https://github.com/hyphop/miZy-builder/releases/download/vm1/miZyBldr.squashfs
 
 #echo "[i] CMD: $cmd DIR: $mb IMG: $img"
 
@@ -28,6 +28,9 @@ case $cmd in
     URL=${cmd#get=}
     [ "$URL" = "" ] && URL=$url
     wget $URL -O $img
+    md5sum $img
+    wget $URL.md5sum -O $img.md5sum
+    cat $img.md5sum
     ;;
     info)
     ;;
