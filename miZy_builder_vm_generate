@@ -293,6 +293,9 @@ for v in `cat /proc/cmdline`; do
         password=*)
 	echo "PASSWORD: root:${v#password=}"
         echo root:${v#password=} | chpasswd
+	echo "Match User root" 		  >> /etc/ssh/sshd_config
+	echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+	echo "PermitRootLogin yes"	  >> /etc/ssh/sshd_config
 	;;
         ip0=*)
 	ifconfig eth0 ${v#ip0=} netmask 255.255.255.0
