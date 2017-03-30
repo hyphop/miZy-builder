@@ -1,8 +1,13 @@
 #  gererate | run | configure vm image (qemu+kvm) for miZy system building and other tests
 
+## GET SCRIPTS
+    
+    mkdir /tmp/zero_builder
+    cd /tmp/zero_builder
+    git clone https://github.com/hyphop/miZy-builder        
+
 ## GENERATE
 
-    mkdir /tmp/zero_builder
     cd /tmp/zero_builder
     ./miZy_builder_vm_generate yes
 
@@ -11,9 +16,9 @@
     cd /tmp/zero_builder
     ./miZy_builder_vm start
 
-## GET 
+## GET READY IMAGE
 
-same possible to download already generated image from net
+download already generated image from net
 
     cd /tmp/zero_builder
     ./miZy_builder_vm_image get
