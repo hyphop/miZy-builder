@@ -11,8 +11,9 @@
 
 disk=miZyBldr.ovl
 
-[ -f disk ] || qemu-img create -f qcow2 $disk 1G
+[ -f $disk ] || qemu-img create -f qcow2 $disk 1G
 
 echo "tar file script + virtual disk"
 
 ./miZy_builder_vm start run=scripts/init.hello.script disk=$disk
+
