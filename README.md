@@ -15,6 +15,8 @@
     
     cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm start
+    ./miZy_builder_vm start run=tar=scripts
+    ./miZy_builder_vm start run=http://...
 
 ## DOWNLOAD IMAGE
 

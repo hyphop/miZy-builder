@@ -305,6 +305,18 @@ for v in `cat /proc/cmdline`; do
 		mount /dev/vdb /tmp/vdb 
 		$s
 	    ;;
+	    tar*)
+		p=$PWD
+		d=/tmp/scripts
+		mkdir $d && cd $d
+		tar -zx < /dev/vdb
+		for s in *init* ; do 
+		    [ -f $s ] && {
+			echo "RUN: $d/$s"
+			./$s
+		    }
+		done
+	    ;;
 	    *)
 	    echo "IGNORE RUN $run"
 	esac

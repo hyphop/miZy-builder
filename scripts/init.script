@@ -8,7 +8,7 @@ echo hello from $0 >> /dev/ttyS0
 
 sleep 2
 
-grep run /proc/cmdline && poweroff
+#grep run /proc/cmdline && poweroff
 
 
 

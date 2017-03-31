@@ -23,6 +23,12 @@ no use file config, only via env vars
 
     noconf=1 ip0=11.168.1.1 ip0h=11.168.1.254 ip0g=11.168.1.254  ./miZy_builder_vm start
 
+customs sripts
+
+    ./miZy_builder_vm start run=tar=scripts
+    ./miZy_builder_vm start run=http://...
+
+
 NETWORK CONFIG VARS
 
 on VM   side: run two interfaces eth0 and eth1, eth0 used as WAN, eth1 used as LAN.
@@ -179,7 +185,8 @@ echo "[i] read config $conf" # => $ipcnf";
 [ "$host_name" = "" ] || userconfig="${userconfig} hostname=$host_name"
 [ "$password" = "" ] || userconfig="${userconfig} password=$password"
 userconfig="${userconfig} $ipcnf"
-userconfig="${userconfig} $log_options $2 $3 $4 $5 $6"
+userconfig="${userconfig} $log_options"
+#userconfig="${userconfig} $log_options $2 $3 $4 $5 $6"
 
 echo "[i] userconfig: $userconfig"
 
@@ -191,7 +198,54 @@ modprobe kvm-intel
 
 #[ -f "$0.down" ] || netdown_script=$0.down
 netdown_script=$0
+ovl_tar_gz=""
 
+for v in $@; do
+    #echo $v
+    case $v in
+    run=*)
+	s=${v#run=}
+	case $s in
+    	    tar*)
+	    c=${s#tar=}
+	    echo "RUN: tar $c"
+
+	    targz=tmp/init.scripts.tar.gz
+
+	    [ -f $targz ] && rm $targz
+
+	    [ -d $c ] && {
+		echo "[i] tar gz dir $c"
+		p=$PWD
+	        cd $c
+		tar -czf- * > ../$targz.tmp
+		cd $p
+		tarsize=`stat -c%s $targz.tmp`
+		tarblocks=$((tarsize / 512))
+		tarblocks=$((tarblocks + 1))
+		#echo "$tarsize / $tarblocks"
+		dd if=/dev/zero count=$tarblocks of=$targz 2>/dev/null 
+		dd if=$targz.tmp conv=notrunc of=$targz 2>/dev/null
+		rm $targz.tmp
+	    }
+	    
+	    [ -f $targz ] && {
+		ls -l1 $targz
+		userconfig="$userconfig $v"
+		echo "[i] kernel args + $v"
+		ovl_tar_gz="-drive file=$targz,if=virtio,index=1"
+	    }
+
+	    ;;
+	    http*)
+	    userconfig="$userconfig $v"
+	    ;;
+	esac
+	;;
+    esac
+done
+
+# exit 0
 
 qemu-system-x86_64 \
 -enable-kvm \
@@ -206,6 +260,8 @@ qemu-system-x86_64 \
 -net nic,vlan=1,model=virtio \
 -net tap,vlan=1,script="$0",downscript="$netdown_script" \
 -drive file=$image,if=virtio,index=0 \
+-no-fd-bootchk \
+$ovl_tar_gz \
 -nographic
 
 exit 0
