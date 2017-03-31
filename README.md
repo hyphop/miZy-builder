@@ -24,7 +24,7 @@ create overlay
 
     qemu-img create -f qcow2 miZyBldr.ovl 1G
 
-run with overlay
+run with 
 
     ./miZy_builder_vm start ovl=
 

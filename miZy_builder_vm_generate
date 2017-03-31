@@ -51,6 +51,20 @@ VER=stable
 #FROM=http://archive.ubuntu.com/ubuntu/
 FROM=http://http.debian.net/debian
 
+#./miZy_builder_vm_generate: line 85: debootstrap: command not found
+
+which debootstrap >/dev/null || {
+    echo "install debootstrap package and try again!!!
+    apt-get install debootstrap" 1>&2
+    exit 1
+}
+
+which mksquashfs >/dev/null || {
+    echo "install squashfs-tools package and try again!!!
+    apt-get install squashfs-tools" 1>&2
+    exit 1
+}
+
 debootstrap="debootstrap --arch=amd64 $VER $BLDIR $FROM"
 
 MODULES_INIT="
