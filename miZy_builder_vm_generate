@@ -80,7 +80,7 @@ openssh-server mc aufs-tools bash-completion"
 
 echo "$debootstrap + $PACKAGES_LINUX + $PACKAGES"
 
-exit 0
+#exit 0
 
 $debootstrap
 
