@@ -18,6 +18,10 @@
     ./miZy_builder_vm start run=tar=scripts
     ./miZy_builder_vm start run=http://...
 
+## OVERLAY
+
+    qemu-img create -f qcow2 miZyBldr.ovl 1G
+
 ## DOWNLOAD IMAGE
 
 yes u can download and use already generated image withot any preparation )

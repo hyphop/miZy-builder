@@ -188,6 +188,7 @@ userconfig="${userconfig} $ipcnf"
 userconfig="${userconfig} $log_options"
 #userconfig="${userconfig} $log_options $2 $3 $4 $5 $6"
 
+
 echo "[i] userconfig: $userconfig"
 
 #exit 0 
@@ -198,11 +199,29 @@ modprobe kvm-intel
 
 #[ -f "$0.down" ] || netdown_script=$0.down
 netdown_script=$0
-ovl_tar_gz=""
+
+overlays=""
+aufs=""
+vd=1
 
 for v in $@; do
     #echo $v
     case $v in
+    #ovl=""
+    ovl=*)
+	ovl=${v#ovl=}
+	
+	[ "$ovl" = "" ] && {
+	    ovl=$mb.ovl
+	}
+
+	[ -f $ovl ] || {
+	    echo "[e] ovl $ovl not found"
+	    exit 1
+	}
+	overlays="$overlays -drive file=$ovl,if=virtio,index=$vd"
+	vd=$((vd+1))
+    ;;
     run=*)
 	s=${v#run=}
 	case $s in
@@ -233,7 +252,7 @@ for v in $@; do
 		ls -l1 $targz
 		userconfig="$userconfig $v"
 		echo "[i] kernel args + $v"
-		ovl_tar_gz="-drive file=$targz,if=virtio,index=1"
+		overlays="$overlays -drive file=$targz,if=virtio,index=10"
 	    }
 
 	    ;;
@@ -245,7 +264,14 @@ for v in $@; do
     esac
 done
 
+[ "$aufs" = "" ] && aufs=tmpfs
+
+## aufs
+userconfig="${userconfig} aufs=$aufs"
+
 # exit 0
+
+#root=/dev/vda is loop device eq squashfs
 
 qemu-system-x86_64 \
 -enable-kvm \
@@ -254,14 +280,14 @@ qemu-system-x86_64 \
 -cpu kvm64 \
 -kernel $kernel \
 -initrd $initrd \
--append "console=ttyS0 root=/dev/vda ro aufs=tmpfs ro panic=15 vt.default_utf8=1 loop.max_loop=64 $userconfig" \
+-append "console=ttyS0 root=/dev/vda ro panic=15 vt.default_utf8=1 loop.max_loop=64 $userconfig" \
 -net nic,vlan=0,model=virtio \
 -net tap,vlan=0,script="$0",downscript="$netdown_script" \
 -net nic,vlan=1,model=virtio \
 -net tap,vlan=1,script="$0",downscript="$netdown_script" \
 -drive file=$image,if=virtio,index=0 \
+$overlays \
 -no-fd-bootchk \
-$ovl_tar_gz \
 -nographic
 
 exit 0
