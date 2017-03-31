@@ -280,7 +280,7 @@ for v in $@; do
 
 	    [ -d $c ] && {
 
-	        targz=tmp/init.scripts.tar.gz
+	        targz=/tmp/init.scripts.tar.gz
 
 		[ -f $targz ] && rm $targz
 
