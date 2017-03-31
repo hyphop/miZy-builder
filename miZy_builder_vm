@@ -287,7 +287,7 @@ for v in $@; do
 		echo "[i] tar gz dir $c"
 		p=$PWD
 	        cd $c
-		    tar -czf- * > ../$targz
+		    tar -czf- * > $targz
 		cd $p
 		
 	    }
