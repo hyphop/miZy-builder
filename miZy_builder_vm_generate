@@ -51,21 +51,41 @@ VER=stable
 #FROM=http://archive.ubuntu.com/ubuntu/
 FROM=http://http.debian.net/debian
 
-cmd="debootstrap --arch=amd64 $VER $BLDIR $FROM"
+debootstrap="debootstrap --arch=amd64 $VER $BLDIR $FROM"
 
-[ "1" ] && {
+MODULES_INIT="
+    virtio
+    virtio_blk
+    virtio_net
+    virtio_pci
+    aufs
+    squashfs
+    loop
+"
 
-echo $cmd
-$cmd
+modules_all_remove=
 
-chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes --no-install-recommends linux-image-amd64
+PACKAGES_LINUX="linux-image-amd64"
 
+PACKAGES="bison make flex git time ash bc python gettext \
+ncurses-dev u-boot-tools squashfs-tools lzma lzop xz-utils tcpdump bwm-ng \
+openssh-server mc aufs-tools bash-completion"
+
+
+[ -f $0.conf ] && {
+    echo "[i] override or add conf from $0.conf"
+    . $0.conf
 }
 
-chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes \
-bison make flex git time ash bc python gettext \
-ncurses-dev u-boot-tools squashfs-tools lzma lzop xz-utils tcpdump bwm-ng \
-openssh-server mc aufs-tools bash-completion 
+
+echo "$debootstrap + $PACKAGES_LINUX + $PACKAGES"
+
+exit 0
+
+$debootstrap
+
+chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes --no-install-recommends $PACKAGES_LINUX
+chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes $PACKAGES
 
 echo $BLNME > $BLDIR/etc/hostname
 
@@ -124,15 +144,20 @@ DEVICE=
 NFSROOT=auto
 END
 
-cat << END > $BLDIR/etc/initramfs-tools/modules
-    virtio
-    virtio_blk
-    virtio_net
-    virtio_pci
-    aufs
-    squashfs
-    loop
-END
+
+for MOD in $MODULES_INIT; do
+    echo "init mod $MOD"
+    echo $MOD >> $BLDIR/etc/initramfs-tools/modules
+done
+
+MODULES_BLACK="
+"
+[ -f $0.nomod ] && MODULES_BLACK="$MODULES_BLACK$(cat $0.nomod)"
+
+for MOD in $MODULES_BLACK; do
+    echo "blacklist $MOD"
+    echo "blacklist $MOD" >> $BLDIR/etc/modprobe.d/vm.conf
+done
 
 #cp aufs/aufs $BLDIR/usr/share/initramfs-tools/hooks
 cat << END >> $BLDIR/usr/share/initramfs-tools/hooks/aufs
@@ -248,7 +273,7 @@ cat << END >> $BLDIR/etc/fstab
 tmpfs /tmp tmpfs defaults,noatime,nosuid 0 0
 END
 
-chroot $BLDIR update-initramfs -u
+chroot $BLDIR update-initramfs -v -u
 
 ## NET
 
@@ -302,23 +327,30 @@ for v in `cat /proc/cmdline`; do
 	    ;;
 	    vbd*)
 		s=/tmp/vdb/init.script
+		mkdir /tmp/vdb 
 		mount /dev/vdb /tmp/vdb 
 		$s
 	    ;;
-	    tar*)
+#	    *tar*)
+	    *)
 		p=$PWD
 		d=/tmp/scripts
 		mkdir $d && cd $d
-		tar -zx < /dev/vdb
+		for disk in vdb vdc vdd vde; do
+		[ -b /dev/$disk ] && { 
+		tar -zx < /dev/$disk
 		for s in *init* ; do 
 		    [ -f $s ] && {
 			echo "RUN: $d/$s"
 			./$s
 		    }
 		done
+		}
+		done
+		cd $p
 	    ;;
-	    *)
-	    echo "IGNORE RUN $run"
+#	    *)
+#	    echo "IGNORE RUN $run"
 	esac
 	;;
         password=*)
@@ -366,6 +398,12 @@ done
 }
 
 rm -rf $BLDIR/var/cache/apt/*
+
+
+[ "$modules_all_remove" = "" ] || {
+    echo "[i] remove all modules"
+    rm -rf $BLDIR/lib/modules
+}
 
 ## pack 
 

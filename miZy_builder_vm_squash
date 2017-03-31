@@ -1,0 +1,70 @@
+#!/bin/sh
+
+## hyphop ##
+
+about() { echo "
+$0 - vm squash image helper
+
+USAGE
+
+* $0 get 
+* $0 unpack
+* $0 pack
+* $0 mount
+* $0 umount
+
+"; }
+
+[ "$mb" = "" ] && mb=miZyBldr
+[ "$img" = "" ] && img=$2
+[ "$img" = "" ] && img=$mb.squashfs
+[ "$cmd" = "" ] && cmd=$1
+[ "$url" = "" ] && url=https://github.com/hyphop/miZy-builder/releases/download/vm1/miZyBldr.squashfs
+
+#echo "[i] CMD: $cmd DIR: $mb IMG: $img"
+
+case $cmd in
+    get*)
+    URL=${cmd#get}
+    URL=${URL#=}
+    [ "$URL" = "" ] && URL=$url
+    echo wget -c $URL -O $img
+    wget -c $URL -O $img
+    wget $URL.md5sum -O $img.md5sum
+    cat $img.md5sum
+    md5sum -c $img.md5sum
+    ;;
+    info)
+    ;;
+    mount)
+    [ -d $mb ] || mkdir $mb
+    cmd="mount -o ro $img $mb"
+    echo $cmd
+    $cmd && exit 0
+    exit 1
+    ;;
+    umount)
+    cmd="umount $img"
+    echo $cmd
+    [ -f $img ] && $cmd && exit 0
+    cmd="umount $mb"
+    echo $cmd
+    [ -d $mb ] && $cmd && exit 0
+    exit 1
+    ;;
+    unpack)
+    cmd="unsquashfs -d $mb $img"
+    echo $cmd
+    $cmd && exit 0
+    exit 1
+    ;;
+    pack)
+    cmd="mksquashfs $mb $img -comp xz"
+    echo $cmd
+    $cmd && exit 0
+    exit 1
+    ;;
+    *)
+    about
+    exit 0
+esac

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+## hyphop ##
+
+## say hello good by test
+
+uptime=`cat /proc/uptime`
+
+out="tee /tmp/init.script.$$.log /dev/ttyS0"
+
+echo hello from $0 | $out
+
+echo "UPTIME: $uptime" | $out
+
+cat /proc/diskstats | grep vd | $out
+
+sleep 1
+
+echo good by from $0 | $out
+
+grep run /proc/cmdline && poweroff
+
+
+

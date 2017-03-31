@@ -141,9 +141,27 @@ NOTE:
 
 [ "$1" = "start" ] || { usage; exit 0; } 
 
+already=
 
-#mprobe="modprobe.blacklist=drm,ipv6,intel_agp,agpgart,parport,kvm"
-mprobe=""
+[ -e /sys/class/net/tap0 ] && already="$already tap0"
+[ -e /sys/class/net/tap1 ] && already="$already tap1"
+
+[ "$already" = "" ] || {
+    echo "[e] looks like run already ( used:$already )" 1>&2
+    exit 1
+}
+
+nomodules="modprobe.blacklist="
+nomod_file="miZy_builder_vm.nomod"
+
+[ -f $nomod_file ] && {
+    for nomod in `cat $nomod_file`; do
+	nomodules="$nomodules$nomod,"
+    done
+}
+
+#nomodules="$nomodules,ipv6"
+#nomodules=""
 
 [ "$mb" = "" ] && mb=miZyBldr
 [ "$image" = "" ] && image=$mb.squashfs
@@ -189,7 +207,6 @@ userconfig="${userconfig} $log_options"
 #userconfig="${userconfig} $log_options $2 $3 $4 $5 $6"
 
 
-echo "[i] userconfig: $userconfig"
 
 #exit 0 
 
@@ -210,55 +227,90 @@ for v in $@; do
     #ovl=""
     ovl=*)
 	ovl=${v#ovl=}
-	
 	[ "$ovl" = "" ] && {
 	    ovl=$mb.ovl
 	}
-
 	[ -f $ovl ] || {
 	    echo "[e] ovl $ovl not found"
 	    exit 1
 	}
 	overlays="$overlays -drive file=$ovl,if=virtio,index=$vd"
 	vd=$((vd+1))
+	aufs=vdx
+    ;;
+    disk=*)
+	disk=${v#disk=}
+	[ -f $disk ] || {
+	    echo "[e] disk image $disk not found"
+	    exit 1
+	}
+	overlays="$overlays -drive file=$disk,if=virtio,index=$vd"
+	vd=$((vd+1))
     ;;
     run=*)
-	s=${v#run=}
-	case $s in
-    	    tar*)
-	    c=${s#tar=}
-	    echo "RUN: tar $c"
+	src=${v#run=}
+	case $src in
+	    http*)
+	    echo "RUN: $src"
+	    userconfig="$userconfig $v"
+	    ;;
+    	    *)
 
-	    targz=tmp/init.scripts.tar.gz
+	    c="_UNDEF_"
+	    targz="_UNDEF_"
 
-	    [ -f $targz ] && rm $targz
+	    [ "$src" = "" ] && {
+		echo "[e] run= "
+		exit 1
+	    }
+	    
+	    [ -f $src ] && {
+
+		echo $src | grep -q ".tar" && targz=$src
+		[ -f $targz ] || { 
+		c=`dirname $src`
+	    	[ -d $c ] && {
+		    #f=${src#$c}
+		    #f=${f#/}
+		    f=`basename $src`
+		    echo "DIR $c / RUN $f"
+		}
+		}
+	    }
 
 	    [ -d $c ] && {
+
+	        targz=tmp/init.scripts.tar.gz
+
+		[ -f $targz ] && rm $targz
+
 		echo "[i] tar gz dir $c"
 		p=$PWD
 	        cd $c
-		tar -czf- * > ../$targz.tmp
+		    tar -czf- * > ../$targz
 		cd $p
-		tarsize=`stat -c%s $targz.tmp`
-		tarblocks=$((tarsize / 512))
-		tarblocks=$((tarblocks + 1))
-		#echo "$tarsize / $tarblocks"
-		dd if=/dev/zero count=$tarblocks of=$targz 2>/dev/null 
-		dd if=$targz.tmp conv=notrunc of=$targz 2>/dev/null
-		rm $targz.tmp
+		
 	    }
 	    
 	    [ -f $targz ] && {
+
+		tarsize=`stat -c%s $targz`
+		tarblocks=$((tarsize / 512))
+		newsize=$((tarblocks * 512))
+		[ $newsize -lt $tarsize ] && {
+		    add=$((newsize + 512 - tarsize))
+		    echo "[i] fix $targz size / add $add zero bytes for 512 div"
+		    dd if=/dev/zero bs=$add count=1  2>/dev/null >> $targz
+		}
 		ls -l1 $targz
 		userconfig="$userconfig $v"
 		echo "[i] kernel args + $v"
 		overlays="$overlays -drive file=$targz,if=virtio,index=10"
+		continue
 	    }
-
-	    ;;
-	    http*)
-	    userconfig="$userconfig $v"
-	    ;;
+	    
+	    echo "[e] ignore RUN $src"
+	    exit 1
 	esac
 	;;
     esac
@@ -269,9 +321,14 @@ done
 ## aufs
 userconfig="${userconfig} aufs=$aufs"
 
-# exit 0
+# add nomodules 
+userconfig="${userconfig} $nomodules"
+
+echo "[i] userconfig: $userconfig"
 
 #root=/dev/vda is loop device eq squashfs
+
+[ "$test" = "" ] || exit 0 
 
 qemu-system-x86_64 \
 -enable-kvm \
