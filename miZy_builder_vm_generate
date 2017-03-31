@@ -73,6 +73,7 @@ MODULES_INIT="
     virtio_net
     virtio_pci
     aufs
+    ext4
     squashfs
     loop
 "
@@ -190,7 +191,7 @@ cat << "END" > $BLDIR/etc/initramfs-tools/scripts/init-bottom/rootaufs
 #!/bin/sh
 
 ## hyphop ##
-## fix & adapt
+## fixed & adapted
 
 #  Copyright 2008 Nicholas A. Schembri State College PA USA
 #
@@ -224,17 +225,16 @@ for x in $(cat /proc/cmdline); do
         ;;
     aufs=*)
         aufs=${x#aufs=}
-        case $aufs in
-        tmpfs-debug)
-            aufs=tmpfs
-            aufsdebug=1
-            ;;
-        esac    
+#~         case $aufs in
+#~         tmpfs-debug)
+#~             aufs=tmpfs
+#~             aufsdebug=1
+#~             ;;
+#~         esac    
         ;;
     esac
 done
 
-[ "$aufs" != "tmpfs" ] && exit 0
 
 echo "root-aufs:  Setting up aufs on ${rootmnt} as root file system "
 
@@ -244,7 +244,20 @@ mkdir /aufs
 mkdir /rw
 mkdir /ro
 
-mount -t tmpfs aufs-tmpfs /rw
+rw_ok=
+
+case $aufs in
+    vd*)
+    mount -t ext4 /dev/$aufs /rw && rw_ok=1
+    ;;
+    #tmp*) 
+    *) 
+    mount -t tmpfs aufs-tmpfs /rw && rw_ok=1
+    ;;
+esac
+
+[ "$rw_ok" = "1" ] || mount -t tmpfs aufs-tmpfs /rw
+
 mount -n -o move ${rootmnt} /ro || {
     echo "root-aufs error:    ${rootmnt}  failed to move to /ro"
     exit 0
@@ -423,6 +436,8 @@ rm -rf $BLDIR/var/cache/apt/*
 
 #( cd $BLDIR && find . -print0 | cpio --null -o --format=newc | lzop -9 > ../$BLDIR.lzo )
 #( cd $BLDIR && find . -print0 | cpio --null -o --format=newc > $BLDIR.cpio )
+
+rm -rf $BLDIR/debootstrap
 
 mksquashfs $BLDIR $BLIMG -comp xz
 

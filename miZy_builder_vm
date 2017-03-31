@@ -232,11 +232,12 @@ for v in $@; do
 	}
 	[ -f $ovl ] || {
 	    echo "[e] ovl $ovl not found"
+	    echo "[i] EXAMPLE: qemu-img create -f qcow2 miZyBldr.ovl 1G"
 	    exit 1
 	}
 	overlays="$overlays -drive file=$ovl,if=virtio,index=$vd"
 	vd=$((vd+1))
-	aufs=vdx
+	aufs=vdb
     ;;
     disk=*)
 	disk=${v#disk=}
