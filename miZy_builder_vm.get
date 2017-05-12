@@ -1,0 +1,3 @@
+#!/bin/bash
+##
+wget -c https://github.com/hyphop/pkg/releases/download/mirror/miZyBldr.squashfs
