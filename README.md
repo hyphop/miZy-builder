@@ -11,12 +11,15 @@
     cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm_generate yes
 
-## RUN
+## RUN EXAMPLES
     
     cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm start
     ./miZy_builder_vm start run=tar=scripts
     ./miZy_builder_vm start run=http://...
+
+    mem=4G password=1234 ./miZy_builder_vm start
+    console= password=1234 ./miZy_builder_vm start
 
 ## Easy make - by one-line command
 
