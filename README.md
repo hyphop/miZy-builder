@@ -19,7 +19,7 @@
     ./miZy_builder_vm start run=http://...
 
     mem=4G password=1234 ./miZy_builder_vm start
-    console= password=1234 ./miZy_builder_vm start
+    console=no password=1234 ./miZy_builder_vm start
 
 ## Easy make - by one-line command
 

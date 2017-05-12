@@ -57,7 +57,6 @@ NOTE:
     [ -f $conf ] || { echo "[e] not found config $conf"; exit 1; } 
     #echo "[i] read config $conf";
     . $conf
-    . $0.kernel.conf
 }
 
 ## qemu net scripts there 
@@ -152,6 +151,9 @@ already=
     echo "[e] looks like run already ( used:$already )" 1>&2
     exit 1
 }
+
+# get config
+. $0.conf
 
 nomodules="modprobe.blacklist="
 nomod_file="miZy_builder_vm.nomod"
@@ -337,8 +339,8 @@ echo "[i] userconfig: $userconfig"
 [ "$mem" = "3G" ] && mem=3072
 [ "$mem" = "4G" ] && mem=4096
 
-#console="console=ttyS0 "
-#console=
+console=${console:-console=ttyS0}
+[ "$console" = "no" ] && console=
 
 qemu-system-x86_64 \
 -enable-kvm \
