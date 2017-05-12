@@ -14,6 +14,7 @@ EXAMPLES:
 get ip config from default miZy_builder_vm.net.conf file and run miZyBldr.squashfs image
 
     ./miZy_builder_vm start
+    mem=4G ./miZy_builder_vm start
 
 get ip config from MY_IP.conf file and run MY_IMAGE.squashfs image
 
@@ -56,6 +57,7 @@ NOTE:
     [ -f $conf ] || { echo "[e] not found config $conf"; exit 1; } 
     #echo "[i] read config $conf";
     . $conf
+    . $0.kernel.conf
 }
 
 ## qemu net scripts there 
@@ -206,8 +208,6 @@ userconfig="${userconfig} $ipcnf"
 userconfig="${userconfig} $log_options"
 #userconfig="${userconfig} $log_options $2 $3 $4 $5 $6"
 
-
-
 #exit 0 
 
 export VMSTARTED=1
@@ -331,14 +331,23 @@ echo "[i] userconfig: $userconfig"
 
 [ "$test" = "" ] || exit 0 
 
+[ "$mem" = "" ] && mem=2G
+[ "$mem" = "1G" ] && mem=1024
+[ "$mem" = "2G" ] && mem=2048
+[ "$mem" = "3G" ] && mem=3072
+[ "$mem" = "4G" ] && mem=4096
+
+console="console=ttyS0 "
+console=
+
 qemu-system-x86_64 \
 -enable-kvm \
 -smp 2 \
--m 2047 \
+-m $mem \
 -cpu kvm64 \
 -kernel $kernel \
 -initrd $initrd \
--append "console=ttyS0 root=/dev/vda ro panic=15 vt.default_utf8=1 loop.max_loop=64 $userconfig" \
+-append "$console root=/dev/vda ro panic=15 vt.default_utf8=1 loop.max_loop=64 $userconfig" \
 -net nic,vlan=0,model=virtio \
 -net tap,vlan=0,script="$0",downscript="$netdown_script" \
 -net nic,vlan=1,model=virtio \
