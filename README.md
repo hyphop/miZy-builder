@@ -18,12 +18,28 @@
     ./miZy_builder_vm start run=tar=scripts
     ./miZy_builder_vm start run=http://...
 
-    mem=4G password=1234 ./miZy_builder_vm start
-    console=no password=1234 ./miZy_builder_vm start
+setup total ram size
+
+    mem=4G ./miZy_builder_vm start
+
+setup root password 
+
+    password=1234 ./miZy_builder_vm start
+
+daemon mode 
+
+    console=no password=1234 ./miZy_builder_vm start &
 
 ## Easy make - by one-line command
 
     wget http://raw.githubusercontent.com/hyphop/miZy-builder/master/make_it_easy -O- | sh -
+
+## files & configs
+
+* miZy_builder_vm.net.conf	- vm net config
+* miZy_builder_vm.conf		- vm config
+* miZy_builder_vm.get		- download last miZyBldr.squashfs from 
+    https://github.com/hyphop/pkg/releases/download/mirror/miZyBldr.squashfs
 
 ## OVERLAY
 
