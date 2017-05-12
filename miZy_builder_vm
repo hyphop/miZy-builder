@@ -201,7 +201,12 @@ initrd=`ls $mb/boot/initrd*`
 
 ipcnf="ip0=$ip0 ip0g=$ip0g ip1=$ip1 ip1g=$ip1g"
 
-echo -e "[i] vm_image: $image\n\tkernel:\n\t$kernel\n\tinitrd: $initrd"
+printf "\
+[i] vm_image: %s
+   vm_kernel: %s
+   vm_initrd: %s
+" $image $kernel $initrd
+
 echo "[i] read config $conf" # => $ipcnf";
 
 [ "$host_name" = "" ] || userconfig="${userconfig} hostname=$host_name"
@@ -347,7 +352,8 @@ console=${console:-console=ttyS0}
 }
 
 
-cmd=qemu-system-x86_64 \
+RUN() {
+qemu-system-x86_64 \
 -enable-kvm \
 -smp 2 \
 -m $mem \
@@ -363,7 +369,14 @@ cmd=qemu-system-x86_64 \
 $overlays \
 -no-fd-bootchk \
 -nographic
+}
 
-echo $cmd
+[ "$bg" ] && {
+    echo "[i] goto bg" 1>&2
+    RUN &
+    exit 0
+}
+
+RUN
 
 exit 0
