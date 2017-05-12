@@ -28,7 +28,7 @@ setup root password
 
 daemon mode 
 
-    console=no password=1234 ./miZy_builder_vm start &
+    console=no password=1234 ./miZy_builder_vm start
 
 ## Easy make - by one-line command
 

@@ -339,10 +339,15 @@ echo "[i] userconfig: $userconfig"
 [ "$mem" = "3G" ] && mem=3072
 [ "$mem" = "4G" ] && mem=4096
 
+bg=
 console=${console:-console=ttyS0}
-[ "$console" = "no" ] && console=
+[ "$console" = "no" ] && {
+    console=
+    bg=1
+}
 
-qemu-system-x86_64 \
+
+cmd=qemu-system-x86_64 \
 -enable-kvm \
 -smp 2 \
 -m $mem \
@@ -358,5 +363,7 @@ qemu-system-x86_64 \
 $overlays \
 -no-fd-bootchk \
 -nographic
+
+echo $cmd
 
 exit 0
