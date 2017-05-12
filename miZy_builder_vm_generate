@@ -88,6 +88,7 @@ bison make flex time ash bc python gettext
 ncurses-dev u-boot-tools squashfs-tools 
 lzma lzop lbzip2 gawk xz-utils aufs-tools 
 subversion git
+mercurial
 openssh-server mc bash-completion tcpdump bwm-ng lsof
 "
 
