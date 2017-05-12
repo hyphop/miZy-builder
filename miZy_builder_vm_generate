@@ -82,8 +82,9 @@ modules_all_remove=
 
 PACKAGES_LINUX="linux-image-amd64"
 
+## development 
 PACKAGES="bison make flex git time ash bc python gettext \
-ncurses-dev u-boot-tools squashfs-tools lzma lzop xz-utils tcpdump bwm-ng \
+ncurses-dev u-boot-tools squashfs-tools lzma lzop lbzip2 lsof gawk xz-utils tcpdump bwm-ng \
 openssh-server mc aufs-tools bash-completion"
 
 
