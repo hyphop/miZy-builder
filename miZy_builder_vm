@@ -54,7 +54,10 @@ NOTE:
 
 [ "$noconf" = "" ] && {
     [ "$conf" = "" ] && conf="$0.net.conf"
-    [ -f $conf ] || { echo "[e] not found config $conf"; exit 1; } 
+    [ -f $conf ] || { 
+	echo "[e] not found config $conf"
+        exit 1
+    } 
     #echo "[i] read config $conf";
     . $conf
 }
@@ -172,6 +175,8 @@ nomod_file="miZy_builder_vm.nomod"
 
 [ -s $image ] || { 
     echo "[e] not found $image"
+    echo "[i] try generate it: ./miZy_builder_vm_generate yes"
+    echo "[i] or download  it: ./miZy_builder_vm.get"
     exit 1
 }
 
