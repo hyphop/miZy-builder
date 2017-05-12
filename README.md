@@ -18,6 +18,10 @@
     ./miZy_builder_vm start run=tar=scripts
     ./miZy_builder_vm start run=http://...
 
+## Easy make - by one-line command
+
+    wget http://raw.githubusercontent.com/hyphop/miZy-builder/master/make_it_easy -O- | sh -
+
 ## OVERLAY
 
 create overlay
