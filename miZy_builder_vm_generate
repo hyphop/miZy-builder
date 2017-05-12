@@ -85,14 +85,15 @@ PACKAGES_LINUX="linux-image-amd64"
 ## development 
 PACKAGES="\
 bison make flex time ash bc python gettext
-ncurses-dev u-boot-tools squashfs-tools 
+ncurses-dev u-boot-tools squashfs-tools zlib1g-dev 
 bzip2 lzma lzop lbzip2 gawk xz-utils aufs-tools 
-subversion git
+subversion git 
 mercurial
 openssh-server mc bash-completion tcpdump bwm-ng lsof
 "
 
-#build-essential libncurses5-dev make pkg-config unzip zlib1g-dev  libssl-dev
+#pkg-config xsltproc
+#build-essential libncurses5-dev make pkg-config unzip zlib1g-dev libssl-dev
 
 [ -f $0.conf ] && {
     echo "[i] override or add conf from $0.conf"
