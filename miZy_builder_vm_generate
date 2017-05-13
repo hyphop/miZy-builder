@@ -314,9 +314,9 @@ chroot $BLDIR update-initramfs -v -u
 
 . ./miZy_builder_vm.net.conf
 
-cat << END >> $BLDIR/etc/resolv.conf
-nameserver 8.8.8.8
-END
+#cat << END >> $BLDIR/etc/resolv.conf
+#nameserver 8.8.8.8
+#END
 
 cat << END >> $BLDIR/etc/hosts
 ##
@@ -442,12 +442,12 @@ rm -rf $BLDIR/var/cache/apt/*
 
 ## resolv config
 
-echo " #
+cat << END >> $BLDIR/etc/resolv.conf
 nameserver 8.8.8.8
 nameserver 8.8.4.4
 nameserver 2001:4860:4860::8888
 nameserver 2001:4860:4860::8844
-" > $BLDIR/etc/resolv.conf
+END
 
 ## pack 
 
