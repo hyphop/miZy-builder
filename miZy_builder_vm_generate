@@ -440,6 +440,15 @@ rm -rf $BLDIR/var/cache/apt/*
     rm -rf $BLDIR/lib/modules
 }
 
+## resolv config
+
+echo " #
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 2001:4860:4860::8888
+nameserver 2001:4860:4860::8844
+" > $BLDIR/etc/resolv.conf
+
 ## pack 
 
 #( cd $BLDIR && find . -print0 | cpio --null -o --format=newc | lzop -9 > ../$BLDIR.lzo )
