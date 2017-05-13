@@ -356,9 +356,12 @@ console=${console:-console=ttyS0}
     bg=1
 }
 
+ECHO() {
+    [ "$verbose" ] && echo $@
+}
 
 RUN() {
-qemu-system-x86_64 \
+$1 qemu-system-x86_64 \
 -enable-kvm \
 -smp 2 \
 -m $mem \
@@ -378,10 +381,12 @@ $overlays \
 
 [ "$bg" ] && {
     echo "[i] goto bg" 1>&2
+    RUN ECHO
     RUN &
     exit 0
 }
 
+RUN ECHO
 RUN
 
 exit 0

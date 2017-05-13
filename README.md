@@ -51,6 +51,30 @@ run with
 
     ./miZy_builder_vm start ovl=
 
+## PERSISTENT STORAGE
+
+create qemu image
+
+    qemu-img create -f qcow2 mizi.img 8G
+
+run vm with image
+
+    ./miZy_builder_vm start disk=mizi.img
+
+prepare & use image inside vm
+
+    mkfs.ext4 /dev/vdb
+    e2label /dev/vdb mizy_build
+    blkid 
+	/dev/vda: TYPE="squashfs"
+	/dev/vdb: LABEL="mizy_build" UUID="..." TYPE="ext4"
+    mkdir /tmp/zero_builder
+    mount /dev/vdb /tmp/zero_builder
+    df | grep zero
+	/dev/vdb         8125880  18420   7671648   1% /tmp/zero_builder
+    cd /tmp/zero_builder
+    ...
+
 ## DOWNLOAD IMAGE
 
 yes u can download and use already generated image withot any preparation )
