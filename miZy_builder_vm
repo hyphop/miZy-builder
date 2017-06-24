@@ -254,8 +254,10 @@ for v in $@; do
     disk=*)
 	disk=${v#disk=}
 	[ -f $disk ] || {
+#	    [ -b $disk ] || {
 	    echo "[e] disk image $disk not found"
-	    exit 1
+#	    exit 1
+	    }
 	}
 	overlays="$overlays -drive file=$disk,if=virtio,index=$vd"
 	vd=$((vd+1))
