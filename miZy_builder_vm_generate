@@ -512,7 +512,7 @@ for v in `cat /proc/cmdline`; do
 		echo "ifconfig $eth $ip netmask 255.255.255.0"
 		#/sbin/ifconfig $eth $ip netmask 255.255.255.0
 		br=`echo $ip | egrep -o \\.+\\\\.`
-		br="$br.255"
+		br="${br}255"
 		echo "ip address add $ip/24 broadcast $br dev $eth"
 		ip address add $ip/24 broadcast $br dev $eth
 		ip link set $eth up
@@ -533,7 +533,7 @@ for v in `cat /proc/cmdline`; do
 		echo "ifconfig $eth $ip netmask 255.255.255.0"
 		#/sbin/ifconfig $eth $ip netmask 255.255.255.0
 		br=`echo $ip | egrep -o \\.+\\\\.`
-		br="$br.255"
+		br="${br}255"
 		echo "ip address add $ip/24 broadcast $br dev $eth"
 		ip address add $ip/24 broadcast $br dev $eth
 		ip link set $eth up
