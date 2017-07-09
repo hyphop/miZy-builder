@@ -435,6 +435,9 @@ END
 
 cat << "END" > $BLDIR/etc/rc.local
 #!/bin/sh
+
+echo "[i] rc.local"
+
 ## get config vm net from kernel args
 for v in `cat /proc/cmdline`; do
     case $v in 
@@ -480,27 +483,62 @@ for v in `cat /proc/cmdline`; do
 	esac
 	;;
         password=*)
-	echo "PASSWORD: root:${v#password=}"
+		echo "PASSWORD: root:${v#password=}"
         echo root:${v#password=} | chpasswd
-	echo "Match User root" 		  >> /etc/ssh/sshd_config
-	echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
-	echo "PermitRootLogin yes"	  >> /etc/ssh/sshd_config
+		echo "SSH reconfig"
+		echo "Match User root" 		  >> /etc/ssh/sshd_config
+		echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
+		echo "PermitRootLogin yes"	  >> /etc/ssh/sshd_config
 	;;
-        ip0=*)
-	ifconfig eth0 ${v#ip0=} netmask 255.255.255.0
-        ;;
+    ip0=*)
+		ip=${v#ip0=}
+		br=
+		eth=eth0
+		[ "$ip" ] && {
+		echo "ifconfig $eth $ip netmask 255.255.255.0"
+		#/sbin/ifconfig $eth $ip netmask 255.255.255.0
+		br=`echo $ip | egrep -o \.+\\.`
+		br="$br.255"
+		echo "ip address add $ip/24 broadcast $br dev $eth"
+		ip address add $ip/24 broadcast $br dev $eth
+		ip link set $eth up
+		}
+    ;;
 	ip0g=*)
-	route add default gw ${v#ip0g=}
+		gw=${v#ip0g=}
+		[ "$gw" ] && {
+		echo "route add default gw $gw"
+		#/sbin/route add default gw ${v#ip0g=}
+		ip route add default via $gw
+		}
 	;;
-        ip1=*)
-	ifconfig eth1 ${v#ip1=} netmask 255.255.255.0
-        ;;
+    ip1=*)
+		ip=${v#ip1=}
+		eth=eth1
+		[ "$ip" ] && {
+		echo "ifconfig $eth $ip netmask 255.255.255.0"
+		#/sbin/ifconfig $eth $ip netmask 255.255.255.0
+		br=`echo $ip | egrep -o \\.+\\\\.`
+		br="$br.255"
+		echo "ip address add $ip/24 broadcast $br dev $eth"
+		ip address add $ip/24 broadcast $br dev $eth
+		ip link set $eth up
+		}
+    ;;
 	ip1g=*)
-	route add default gw ${v#ip1g=}
+		gw=${v#ip1g=}
+		[ "$gw" ] && {
+		echo "route add default gw $gw"
+		#/sbin/route add default gw ${v#ip0g=}
+		ip route add default via $gw
+		}
 	;;
 	esac
 done
 END
+
+## last debian need it
+chmod 0777 $BLDIR/etc/rc.local
 
 ## remove some files 
 

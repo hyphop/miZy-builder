@@ -9,10 +9,10 @@
 ## GENERATE vm Images
 
     cd /tmp/zero_builder/miZy-builder
-    ./miZy_builder_vm_generate yes			  # debian stable (stretch)
-	ver=xenial ./miZy_builder_vm_generate  yes  # ubuntu xenial
-	ver=jessie ./miZy_builder_vm_generate  yes  # debian jessie
-	ver=wheezy ./miZy_builder_vm_generate  yes  # debian wheezy
+    ./miZy_builder_vm_generate yes			  # debian stable (stretch) # not tested
+	ver=xenial ./miZy_builder_vm_generate  yes  # ubuntu xenial # miZy-openwrt-sdk ok
+	ver=jessie ./miZy_builder_vm_generate  yes  # debian jessie # miZy-openwrt-sdk ok
+	ver=wheezy ./miZy_builder_vm_generate  yes  # debian wheezy # 
 
 ## RUN EXAMPLES
     

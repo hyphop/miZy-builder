@@ -145,6 +145,9 @@ NOTE:
 
 [ "$1" = "start" ] || { usage; exit 0; } 
 
+# remove old
+rm /tmp/vm_net_*
+
 already=
 
 [ -e /sys/class/net/tap0 ] && already="$already tap0"
