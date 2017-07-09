@@ -3,6 +3,7 @@
 ## hyphop ##
 
 NAME=miZy_builder_vm_generate
+DST="wheezy|jessie|stable|xenial"
 
 usage() { echo "
 $NAME - make vm image for next miZy system building )
@@ -14,10 +15,11 @@ ABOUT:
     
 USAGE:
     
-	$NAME yes			    # debian stable (stretch)
-	VER=xenial $NAME yes	# ubuntu xenial
-	VER=wheezy $NAME yes	# debian wheezy
-	VER=jessie $NAME yes	# debian jessie
+	$NAME yes		# debian stable (stretch)
+	$NAME [$DST]	# select any
+	$NAME xenial	# ubuntu xenial
+	$NAME wheezy	# debian wheezy
+	$NAME jessie	# debian jessie
 
 ok! now u can start vm ./miZy_builder_vm
 
@@ -30,6 +32,7 @@ DEBOOTSTRAP FIX:
 	cd /usr/share/debootstrap/scripts
 	ln -s gutsy xenial
 	ln -s sid jessie
+	#ln -s sid stretch
 
 NOTE:
 
@@ -46,7 +49,7 @@ set -e
 case $1 in
 	yes)
 	;;
-	wheezy|jessie|stable|xenial|stretch)
+	wheezy|jessie|stable|xenial)
 	VER=$1
 	;;
 	*)
