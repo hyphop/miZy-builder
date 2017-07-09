@@ -143,10 +143,27 @@ NOTE:
 
 #set -e
 
-[ "$1" = "start" ] || { usage; exit 0; } 
+#[ "$1" = "start" ] || { usage; exit 0; } 
+
+case $1 in
+	start)
+		;;
+	wheezy|jessie|stable|xenial)
+		mb="miZyBldr.$1"
+		;;
+	*.squashfs)
+		[ -f $1 ] && {
+			image=$1
+			mb=${image%.squashfs}
+		}
+		;;
+	*)
+	usage
+	exit 0
+esac
 
 # remove old
-rm /tmp/vm_net_*
+rm /tmp/vm_net_* 2>/dev/null
 
 already=
 
@@ -396,5 +413,7 @@ $overlays \
 
 RUN ECHO
 RUN
+
+umount $mb 
 
 exit 0
