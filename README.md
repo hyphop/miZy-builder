@@ -6,7 +6,7 @@
     cd /tmp/zero_builder
     git clone https://github.com/hyphop/miZy-builder
 
-## GENERATE
+## GENERATE vm Images
 
     cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm_generate yes			  # debian stable (stretch)
