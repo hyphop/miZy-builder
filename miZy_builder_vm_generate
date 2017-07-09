@@ -25,6 +25,12 @@ CONFIG:
 
 * miZy_builder_vm.net.conf - config for network ip + nat
 
+DEBOOTSTRAP FIX:
+
+	cd /usr/share/debootstrap/scripts
+	ln -s gutsy xenial
+	ln -s sid jessie
+
 NOTE:
 
     read about ** Bootstrap a basic Debian system **
@@ -128,7 +134,7 @@ lbzip2
 "
 #libzip2
 
-[ "$UNU" ] && {
+[ "$UBU" ] && {
 PACKAGES_LINUX="linux-image-generic"
 PACKAGES="$PACKAGES
 

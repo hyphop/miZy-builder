@@ -21,6 +21,12 @@
     ./miZy_builder_vm start run=tar=scripts
     ./miZy_builder_vm start run=http://...
 
+## DEBOOTSTRAP FIX
+
+	cd /usr/share/debootstrap/scripts
+	ln -s gutsy xenial
+	ln -s sid jessie
+
 setup total ram size
 
     mem=4G ./miZy_builder_vm start

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+D=$(dirname $0)
+
+cp $D/.files /tmp/.files || {
+    echo "[e] plz check $D/.files" 1>&2
+    exit 1
+}
+
+for FILE in "$@"; do
+#
+FILE=${FILE/*\/}
+
+[ "$FILE" ] || {
+    echo "[w] not defined $FILE" 1>&2
+    continue
+}
+
+grep -q " $FILE " $D/.files || {
+    echo "[w] not found $FILE" 1>&2
+    continue
+}
+
+echo "[i] remove $FILE"
+
+#grep -v " $FILE " $TMP/.files > $TMP/.files.new
+
+#mv $TMP/.files.new $TMP/.files
+
+#$D/files del $FILE || {
+#    
+#}
+
+done
+
+
