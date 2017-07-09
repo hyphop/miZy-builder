@@ -40,7 +40,21 @@ NOTE:
 
 set -e
 
-[ "$1" = "yes" ] || { usage; exit 0; } 
+
+#[ "$1" = "yes" ] || { usage; exit 0; } 
+
+case $1 in
+	yes)
+	;;
+	wheezy|jessie|stable|xenial|stretch)
+	VER=$1
+	;;
+	*)
+	usage
+	exit 0
+esac
+
+#
 #cd /tmp
 
 BLNME=miZyBldr
