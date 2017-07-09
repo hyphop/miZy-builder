@@ -9,7 +9,10 @@
 ## GENERATE
 
     cd /tmp/zero_builder/miZy-builder
-    ./miZy_builder_vm_generate yes
+    ./miZy_builder_vm_generate yes			  # debian stable (stretch)
+	ver=xenial ./miZy_builder_vm_generate  yes  # ubuntu xenial
+	ver=jessie ./miZy_builder_vm_generate  yes  # debian jessie
+	ver=wheezy ./miZy_builder_vm_generate  yes  # debian wheezy
 
 ## RUN EXAMPLES
     

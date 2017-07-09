@@ -2,8 +2,10 @@
 
 ## hyphop ##
 
+NAME=miZy_builder_vm_generate
+
 usage() { echo "
-$0 - make vm image for next miZy system building )
+$NAME - make vm image for next miZy system building )
 
 ABOUT: 
 
@@ -12,7 +14,10 @@ ABOUT:
     
 USAGE:
     
-    $0 yes
+	$NAME yes			    # debian stable (stretch)
+	VER=xenial $NAME yes	# ubuntu xenial
+	VER=wheezy $NAME yes	# debian wheezy
+	VER=jessie $NAME yes	# debian jessie
 
 ok! now u can start vm ./miZy_builder_vm
 
@@ -34,7 +39,8 @@ set -e
 
 BLNME=miZyBldr
 BLDIR=$BLNME
-BLIMG=$BLDIR.squashfs
+
+[ -d $BLDIR ] || mkdir $BLDIR
 
 echo $PWD | grep /tmp/ || { echo "wrong work dir $PWD"; exit 1; }
 [ "$BLDIR" = "" ] && { echo "wrong $BLDIR"; exit 1; }
@@ -44,12 +50,30 @@ echo "make miZy builder in $BLDIR"
 #mkdir $BLDIR
 #exit 0
 
-VER=wheezy
-VER=stable
+## debian
+#VER=wheezy
+##VER=jessie
+##VER=stretch
 
+## ubuntu
 #VER=xenial
-#FROM=http://archive.ubuntu.com/ubuntu/
-FROM=http://http.debian.net/debian
+
+[ "$VER" ] || VER=stable
+
+FROM=http://http.debian.net/debian/
+DEB=1
+UBU=
+
+[ "$XENIAL" ] && VER=xenial
+[ "$VER" = "xenial" ] && { 
+	FROM=http://archive.ubuntu.com/ubuntu/
+	DEB=
+	UBU=1
+	XENIAL=1
+}
+
+BLIMG2=$BLDIR.squashfs
+BLIMG=$BLDIR.$VER.squashfs
 
 #./miZy_builder_vm_generate: line 85: debootstrap: command not found
 
@@ -66,6 +90,8 @@ which mksquashfs >/dev/null || {
 }
 
 debootstrap="debootstrap --arch=amd64 $VER $BLDIR $FROM"
+
+echo "[i] $debootstrap => $BLIMG" 1>&2
 
 MODULES_INIT="
     virtio
@@ -84,13 +110,41 @@ PACKAGES_LINUX="linux-image-amd64"
 
 ## development 
 PACKAGES="\
-bison make flex time ash bc python gettext
+bison make flex time bc python gettext
 ncurses-dev u-boot-tools squashfs-tools zlib1g-dev 
-bzip2 lzma lzop lbzip2 gawk xz-utils aufs-tools 
+bzip2 lzma gawk xz-utils
 subversion git 
-mercurial
-openssh-server mc bash-completion tcpdump bwm-ng lsof
+openssh-server bash-completion tcpdump lsof
+
 "
+
+#PACKAGES="$PACKAGES
+#ash lzop aufs-tools libzip2 mercurial mc bwm-ng
+#"
+
+PACKAGES="$PACKAGES
+nano mc ash lzop aufs-tools bwm-ng mercurial 
+lbzip2
+"
+#libzip2
+
+[ "$UNU" ] && {
+PACKAGES_LINUX="linux-image-generic"
+PACKAGES="$PACKAGES
+
+"
+}
+
+[ "$DEB" ] && {
+PACKAGES="$PACKAGES
+busybox
+net-tools
+"
+}
+
+# add
+
+#lbzip2
 
 #pkg-config xsltproc
 #build-essential libncurses5-dev make pkg-config unzip zlib1g-dev libssl-dev
@@ -105,10 +159,27 @@ echo "$debootstrap + $PACKAGES_LINUX + $PACKAGES"
 
 #exit 0
 
-$debootstrap
 
+echo "DEBOOTSTRAP RUN"
+$debootstrap
+echo OK
+
+#[ "$XENIAL" ] && 
+mount -t proc procfs $BLDIR/proc
+
+[ "$UBU" ] && {
+echo "deb http://archive.ubuntu.com/ubuntu $VER main restricted universe
+" > $BLDIR/etc/apt/sources.list
+chroot $BLDIR env LC_ALL=C apt-get update
+}
+
+echo "INSTALL PKG 1"
 chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes --no-install-recommends $PACKAGES_LINUX
+echo OK
+echo "INSTALL PKG 2"
 chroot $BLDIR env LC_ALL=C apt-get install -y --force-yes $PACKAGES
+echo OK
+
 
 echo $BLNME > $BLDIR/etc/hostname
 
@@ -116,7 +187,7 @@ echo $BLNME > $BLDIR/etc/hostname
 
 echo 'T0:23:respawn:/sbin/getty -L ttyS0 115200 vt100' >>$BLDIR/etc/inittab
 
-chroot $BLDIR passwd -d root
+chroot $BLDIR env LC_ALL=C passwd -d root
 
 ## SSH BLOCK
 
@@ -143,7 +214,8 @@ END
 }
 
 ## set some prefs 
-chroot $BLDIR update-alternatives --set editor /usr/bin/mcedit
+
+#chroot $BLDIR update-alternatives --set editor /usr/bin/mcedit
 
 cat << END > $BLDIR/root/.selected_editor
 SELECTED_EDITOR="/usr/bin/mcedit"
@@ -308,13 +380,17 @@ cat << END >> $BLDIR/etc/fstab
 tmpfs /tmp tmpfs defaults,noatime,nosuid 0 0
 END
 
-chroot $BLDIR update-initramfs -v -u
+echo "UPDATE INITRAMFS"
+chroot $BLDIR env LC_ALL=C update-initramfs -v -u
+echo OK
 
 ## NET
 
 . ./miZy_builder_vm.net.conf
 
 ## resolv config
+
+rm $BLDIR/etc/resolv.conf
 
 cat << END > $BLDIR/etc/resolv.conf
 nameserver 8.8.8.8
@@ -331,6 +407,10 @@ $ip1		vrt
 $ip1h		vhst
 END
 
+## ubuntu
+## eth0 eth1 > ens3 ens4
+
+
 cat << END >> $BLDIR/etc/network/interfaces
 ## 
 #auto eth0
@@ -343,7 +423,7 @@ auto eth1
 iface eth1 inet static
         netmask 255.255.255.0
         address $ip1
-	#gateway $ip1g
+#       gateway $ip1g
 ##
 END
 
@@ -451,9 +531,14 @@ rm -rf $BLDIR/var/cache/apt/*
 #( cd $BLDIR && find . -print0 | cpio --null -o --format=newc | lzop -9 > ../$BLDIR.lzo )
 #( cd $BLDIR && find . -print0 | cpio --null -o --format=newc > $BLDIR.cpio )
 
+#[ "$XENIAL" ] && 
+umount $BLDIR/proc
+
+rm -rf $BLDIR/lib/firmware/
 rm -rf $BLDIR/debootstrap
 
 mksquashfs $BLDIR $BLIMG -comp xz
+ln -sf $BLIMG $BLIMG2
 
 echo "[i] $BLIMG - is ready, now u can run ./miZy_builder_vm"
 

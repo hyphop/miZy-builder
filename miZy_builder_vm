@@ -171,6 +171,9 @@ nomod_file="miZy_builder_vm.nomod"
 #nomodules=""
 
 [ "$mb" = "" ] && mb=miZyBldr
+
+[ -d $mb ] || mkdir $mb
+
 [ "$image" = "" ] && image=$mb.squashfs
 
 [ -s $image ] || { 
