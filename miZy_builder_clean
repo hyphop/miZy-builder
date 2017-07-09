@@ -1,0 +1,7 @@
+#!/bin/sh
+
+## hyphop ##
+
+umount miZyBldr 2>/dev/null
+[ -d miZyBldr/proc ] && umount miZyBldr/proc 2>/dev/null
+rm -r miZyBldr
