@@ -1,0 +1,28 @@
+#!/bin/sh
+
+## hyphop ##
+
+mb=/tmp/zero_builder
+[ -d $mb ] || mkdir $mb
+
+blkid | grep -q vdb || mkfs.ext4 /dev/vdb
+
+mount /dev/vdb $mb
+
+cd $mb
+
+git clone https://github.com/hyphop/miZy-openwrt-sdk.git
+
+cd miZy-openwrt-sdk
+
+./openwrt.sdk.download
+./openwrt.sdk.prepare
+
+./openwrt.sdk.feed install openvpn-polarssl
+
+./openwrt.sdk.make
+
+#grep run /proc/cmdline && poweroff
+
+
+
