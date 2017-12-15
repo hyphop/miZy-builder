@@ -11,12 +11,16 @@ mount /dev/vdb $mb
 
 cd $mb
 
+exit 0
+
 git clone https://github.com/hyphop/miZy-openwrt-sdk.git
 
 cd miZy-openwrt-sdk
 
 ./openwrt.sdk.download
 ./openwrt.sdk.prepare
+
+exit 0 
 
 ./openwrt.sdk.feed install openvpn-polarssl
 

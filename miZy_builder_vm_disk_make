@@ -1,0 +1,6 @@
+#!/bin/sh
+
+## hyphop ##
+
+qemu-img create -f qcow2 mizi.img 8G
+

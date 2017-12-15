@@ -1,3 +1,11 @@
 #!/bin/bash
+
 ##
+
 wget -c https://github.com/hyphop/pkg/releases/download/mirror/miZyBldr.squashfs
+
+## or
+
+# wget -c https://github.com/hyphop/pkg/releases/download/mirror/miZyBldr.xenial.squashfs
+# ln -s miZyBldr.xenial.squashfs miZyBldr.squashfs
+

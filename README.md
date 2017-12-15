@@ -10,9 +10,12 @@
 
     cd /tmp/zero_builder/miZy-builder
     ./miZy_builder_vm_generate yes			  # debian stable (stretch) # not tested
-	ver=xenial ./miZy_builder_vm_generate  yes  # ubuntu xenial # miZy-openwrt-sdk ok
-	ver=jessie ./miZy_builder_vm_generate  yes  # debian jessie # miZy-openwrt-sdk ok
-	ver=wheezy ./miZy_builder_vm_generate  yes  # debian wheezy # 
+    # or run  via sudo, becouse DEBOOTSTRAP need root
+    sudo ./miZy_builder_vm_generate yes 
+    #
+    ver=xenial ./miZy_builder_vm_generate  yes  # ubuntu xenial # miZy-openwrt-sdk ok
+    ver=jessie ./miZy_builder_vm_generate  yes  # debian jessie # miZy-openwrt-sdk ok
+    ver=wheezy ./miZy_builder_vm_generate  yes  # debian wheezy # 
 
 ## RUN EXAMPLES
     
@@ -84,6 +87,10 @@ prepare & use image inside vm
     cd /tmp/zero_builder
     ...
 
+## run script
+
+	ssh root@vvv sh < ./scripts/miZy.build.script
+
 ## DOWNLOAD IMAGE
 
 yes u can download and use already generated image withot any preparation )
@@ -101,6 +108,10 @@ sure! you must trust for this image or generate image by himself!
     ## get from ./miZy_builder_vm_generate.pub
     ## miZy_builder_vm_generate.pub
     ## yes is empty there
+
+### ADD ssh authorized_keys
+
+	ssh-copy-id -i ~/.ssh/id_rsa.pub root@vvv
 
 ## miZy 
  
