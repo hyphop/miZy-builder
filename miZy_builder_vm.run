@@ -1,7 +1,0 @@
-#!/bin/bash
-##
-
-ssh_host=root@vvv
-
-console=no password=1234 ./miZy_builder_vm start disk=mizi.img
-

@@ -1,9 +1,0 @@
-#!/bin/bash
-##
-
-ssh_host=root@vvv
-
-ssh-copy-id -i ~/.ssh/id_ecdsa.pub $ssh_host
-
-ssh $ssh_host sh <  ./scripts/miZy.build.script
-
