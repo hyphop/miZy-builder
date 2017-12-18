@@ -192,19 +192,24 @@ bin/sunxi/packages/mizy/sunxi-tools_1.4.0-1_sunxi.ipk
 
 root@miZyBldr:/tmp/zero_builder/miZy-openwrt-sdk# ./openwrt.pkg.fix
 
-## now u can open/use  mizy repo
+## now u can open/use  mizy repo from fake.bin dir
 
-mizy@mizy-desktop:~$ wget -q -O- http://vvv/sunxi/packages/mizy
-<pre><a href='Packages'>Packages</a>
-<a href='Packages.gz'>Packages.gz</a>
-<a href='markdown_0.1-1_sunxi.ipk'>markdown_0.1-1_sunxi.ipk</a>
-<a href='sunxi-tools_1.4.0-1_sunxi.ipk'>sunxi-tools_1.4.0-1_sunxi.ipk</a>
+## run http daemon
 
+root@miZyBldr:/tmp/zero_builder/miZy-openwrt-sdk# ./http_feeds 
+or run http_feeds as daemon in bg 
+# root@miZyBldr:/tmp/zero_builder/miZy-openwrt-sdk# ./http_feeds --daemon
 
 ## ok check in mizy
 
 #add miZyBldr host as vvv
 echo 10.168.1.1 vvv >> /etc/hosts
+
+root@miZy:~# wget -q -O- http://vvv/sunxi/packages/mizy
+<pre><a href='Packages'>Packages</a>
+<a href='Packages.gz'>Packages.gz</a>
+<a href='markdown_0.1-1_sunxi.ipk'>markdown_0.1-1_sunxi.ipk</a>
+<a href='sunxi-tools_1.4.0-1_sunxi.ipk'>sunxi-tools_1.4.0-1_sunxi.ipk</a>
 
 # setup repo
 echo "src local_mizy http://vvv/sunxi/packages/mizy" > /etc/opkg/local.conf
