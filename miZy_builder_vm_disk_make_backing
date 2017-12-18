@@ -1,0 +1,5 @@
+#!/bin/sh
+
+## hyphop ##
+
+qemu-img create -f qcow2 -b $1 $2
