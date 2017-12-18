@@ -1,0 +1,18 @@
+#!/bin/bash
+
+## hyphop ##
+
+## example script
+
+## run vm with disk image => mizy.img
+
+## add host name before usage vvv
+## echo 192.168.10.1 vvv >> /etc/hosts
+
+img=mizy.img
+ssh_host=root@vvv
+
+[ -f $img ] || qemu-img create -f qcow2 $img 8G
+
+console=no password=1234 ./miZy_builder_vm start disk=$img
+

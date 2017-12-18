@@ -1,0 +1,19 @@
+#!/bin/bash
+
+## hyphop ##
+
+## example script 2
+
+ssh_host=root@vvv
+
+## make auth easy via pub key
+
+for i in ~/.ssh/id_*.pub; do
+	echo "[i] add pub key $i"
+	ssh-copy-id -i $i $ssh_host
+done
+
+## run script in vm
+
+ssh $ssh_host sh <  ./scripts/miZy.build.script
+

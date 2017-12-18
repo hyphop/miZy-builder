@@ -67,11 +67,11 @@ run with
 
 create qemu image
 
-    qemu-img create -f qcow2 mizi.img 8G
+    qemu-img create -f qcow2 mizy.img 8G
 
 run vm with image
 
-    ./miZy_builder_vm start disk=mizi.img
+    ./miZy_builder_vm start disk=mizy.img
 
 prepare & use image inside vm
 

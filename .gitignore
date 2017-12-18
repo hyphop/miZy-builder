@@ -4,3 +4,4 @@ tmp/*
 git_*
 syncit*
 rel
+*.img
