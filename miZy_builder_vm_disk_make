@@ -2,5 +2,5 @@
 
 ## hyphop ##
 
-qemu-img create -f qcow2 mizi.img 8G
+qemu-img create -f qcow2 mizy.img 8G
 
