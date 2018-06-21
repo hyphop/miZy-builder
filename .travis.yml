@@ -1,3 +1,3 @@
 language: c
-before_install: sudo apt-get install debootstrap
+before_install: sudo apt-get install debootstrap squashfs-tools
 script:  sudo ./miZy_builder_vm_generate yes
