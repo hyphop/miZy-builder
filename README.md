@@ -1,4 +1,7 @@
+
 #  gererate | run | configure vm image (qemu+kvm) for miZy building system and other tests
+
+[![Build Status](https://travis-ci.com/hyphop/miZy-builder.svg?branch=master)](https://travis-ci.com/hyphop/miZy-builder)
 
 ## GET SCRIPTS
     
