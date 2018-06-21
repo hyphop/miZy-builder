@@ -65,7 +65,8 @@ BLDIR=$BLNME
 
 [ -d $BLDIR ] || mkdir $BLDIR
 
-echo $PWD | grep /tmp/ || { echo "wrong work dir $PWD"; exit 1; }
+#echo $PWD | grep /tmp/ || { echo "wrong work dir $PWD"; exit 1; }
+
 [ "$BLDIR" = "" ] && { echo "wrong $BLDIR"; exit 1; }
 
 echo "make miZy builder in $BLDIR"
