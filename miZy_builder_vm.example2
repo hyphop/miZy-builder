@@ -4,7 +4,21 @@
 
 ## example script 2
 
-ssh_host=root@vvv
+. ./miZy_builder_vm.net.conf
+
+host=vvv
+
+echo "[i] mizy builder script example 1"
+
+gethostip $host || host=$ip0
+
+img=mizy.img
+ssh_host=root@$host
+
+ping -c1 $host 2>/dev/null 1>/dev/null || {
+    echo "[e] host $host not reach" >&2
+    exit 1
+}
 
 ## make auth easy via pub key
 

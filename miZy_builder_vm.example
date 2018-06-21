@@ -9,8 +9,26 @@
 ## add host name before usage vvv
 ## echo 192.168.10.1 vvv >> /etc/hosts
 
+. ./miZy_builder_vm.net.conf
+
+host=vvv
+
+echo "[i] mizy builder script example 1"
+
+gethostip $host || host=$ip0
+
 img=mizy.img
-ssh_host=root@vvv
+ssh_host=root@$host
+
+ping -c1 $host 2>/dev/null 1>/dev/null || {
+    echo "[e] host $host not reach" >&2
+    exit 1
+}
+
+ps -AF|grep qemu|grep miZy && {
+    echo "[w] looks like run already" >&2
+    exit 1 
+}
 
 [ -f $img ] || qemu-img create -f qcow2 $img 8G
 
